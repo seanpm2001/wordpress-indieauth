@@ -5,6 +5,7 @@ class IndieAuth_Client_Discovery {
 	protected $manifest = array();
 	protected $html     = array();
 	protected $mf2      = array();
+	protected $json     = array();
 	public $client_id   = '';
 	public $client_name = '';
 	public $client_icon = '';
@@ -74,45 +75,63 @@ class IndieAuth_Client_Discovery {
 			return $response;
 		}
 
-		$content = wp_remote_retrieve_body( $response );
-
-		if ( class_exists( 'Masterminds\\HTML5' ) ) {
-			$domdocument = new \Masterminds\HTML5( array( 'disable_html_ns' => true ) );
-			$domdocument = $domdocument->loadHTML( $content );
-		} else {
-			$domdocument = new DOMDocument();
-			libxml_use_internal_errors( true );
-			if ( function_exists( 'mb_convert_encoding' ) ) {
-				$content = mb_convert_encoding( $content, 'HTML-ENTITIES', mb_detect_encoding( $content ) );
+		$content_type = wp_remote_retrieve_header( $response, 'content-type' );
+		if ( 'application/json' === $content_type ) {
+			$json = json_decode( wp_remote_retrieve_body( $response ), true );
+			if ( ! is_array( $json ) && empty( $json ) ) {
+					return;
 			}
-			$domdocument->loadHTML( $content );
-			libxml_use_internal_errors( false );
-		}
-
-		$this->get_mf2( $domdocument, $url );
-		if ( ! empty( $this->mf2 ) ) {
-			if ( array_key_exists( 'name', $this->mf2 ) ) {
-				$this->client_name = $this->mf2['name'][0];
+			if ( ! array_key_exists( 'client_id', $json ) ) {
+				return;
 			}
-			if ( array_key_exists( 'logo', $this->mf2 ) ) {
-				if ( is_string( $this->mf2['logo'][0] ) ) {
-					$this->client_icon = $this->mf2['logo'][0];
-				} else {
-					$this->client_icon = $this->mf2['logo'][0]['value'];
+			$this->client_id = $json['client_id'];
+			if ( array_key_exists( 'client_name', $json ) ) {
+				$this->client_name = $json['client_name'];
+			}
+			if ( array_key_exists( 'logo_uri', $json ) ) {
+				$this->client_icon = $json['logo_uri'];
+			}
+		} elseif ( 'text/html' === $content_type ) {
+			$content = wp_remote_retrieve_body( $response );
+
+			if ( class_exists( 'Masterminds\\HTML5' ) ) {
+				$domdocument = new \Masterminds\HTML5( array( 'disable_html_ns' => true ) );
+				$domdocument = $domdocument->loadHTML( $content );
+			} else {
+				$domdocument = new DOMDocument();
+				libxml_use_internal_errors( true );
+				if ( function_exists( 'mb_convert_encoding' ) ) {
+					$content = mb_convert_encoding( $content, 'HTML-ENTITIES', mb_detect_encoding( $content ) );
 				}
+				$domdocument->loadHTML( $content );
+				libxml_use_internal_errors( false );
 			}
-		} elseif ( isset( $this->rels['manifest'] ) ) {
-			self::get_manifest( $this->rels['manifest'] );
-			$this->client_icon = $this->determine_icon( $this->manifest );
-			$this->client_name = $this->manifest['name'];
-		} else {
-			$this->client_icon = $this->determine_icon( $this->rels );
-			$this->get_html( $domdocument );
-			$this->client_name = $this->html['title'];
-		}
 
-		if ( ! empty( $this->client_icon ) ) {
-			$this->client_icon = WP_Http::make_absolute_url( $this->client_icon, $url );
+			$this->get_mf2( $domdocument, $url );
+			if ( ! empty( $this->mf2 ) ) {
+				if ( array_key_exists( 'name', $this->mf2 ) ) {
+					$this->client_name = $this->mf2['name'][0];
+				}
+				if ( array_key_exists( 'logo', $this->mf2 ) ) {
+					if ( is_string( $this->mf2['logo'][0] ) ) {
+						$this->client_icon = $this->mf2['logo'][0];
+					} else {
+						$this->client_icon = $this->mf2['logo'][0]['value'];
+					}
+				}
+			} elseif ( isset( $this->rels['manifest'] ) ) {
+				self::get_manifest( $this->rels['manifest'] );
+				$this->client_icon = $this->determine_icon( $this->manifest );
+				$this->client_name = $this->manifest['name'];
+			} else {
+				$this->client_icon = $this->determine_icon( $this->rels );
+				$this->get_html( $domdocument );
+				$this->client_name = $this->html['title'];
+			}
+
+			if ( ! empty( $this->client_icon ) ) {
+				$this->client_icon = WP_Http::make_absolute_url( $this->client_icon, $url );
+			}
 		}
 	}
 
