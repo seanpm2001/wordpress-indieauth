@@ -8,6 +8,7 @@ class IndieAuth_Client_Discovery {
 	public $client_id   = '';
 	public $client_name = '';
 	public $client_icon = '';
+	public $client_uri = '';
 
 	public function __construct( $client_id ) {
 		$this->client_id = $client_id;
@@ -48,6 +49,7 @@ class IndieAuth_Client_Discovery {
 			'client_id'   => $this->client_id,
 			'client_name' => $this->client_name,
 			'client_icon' => $this->client_icon,
+			'client_uri'  => $this->client_uri,
 		);
 	}
 
@@ -93,6 +95,9 @@ class IndieAuth_Client_Discovery {
 			}
 			if ( array_key_exists( 'logo_uri', $this->json ) ) {
 				$this->client_icon = $this->json['logo_uri'];
+			}
+			if ( array_key_exists( 'client_uri', $this->json ) ) {
+				$this->client_uri = $this->json['client_uri'];
 			}
 		} elseif ( 'text/html' === $content_type ) {
 			$content     = wp_remote_retrieve_body( $response );
