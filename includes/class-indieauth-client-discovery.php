@@ -8,7 +8,7 @@ class IndieAuth_Client_Discovery {
 	public $client_id   = '';
 	public $client_name = '';
 	public $client_icon = '';
-	public $client_uri = '';
+	public $client_uri  = '';
 
 	public function __construct( $client_id ) {
 		$this->client_id = $client_id;
@@ -83,6 +83,19 @@ class IndieAuth_Client_Discovery {
 		$content_type = wp_remote_retrieve_header( $response, 'content-type' );
 		if ( 'application/json' === $content_type ) {
 			$this->json = json_decode( wp_remote_retrieve_body( $response ), true );
+			/**
+			 * Expected format is per the IndieAuth standard as revised 2024-06-23 to include a JSON Client Metadata File
+			 *
+			 * @param array $json {
+			 *      An array of metadata about a client
+			 *
+			 *      @type string $client_uri URL of a webpage providing information about the client.
+			 *      @type string $client_id The client identifier.
+			 *      @type string $client_name Human Readable Name of the Client. Optional.
+			 *      @type string $logo_uri URL that references a logo or icon for the client. Optional.
+			 *      @type array $redirect_uris An array of redirect URIs. Optional.
+			 *  }
+			 **/
 			if ( ! is_array( $this->json ) || empty( $this->json ) ) {
 					return new WP_Error( 'empty_json', __( 'Discovery Has Returned an Empty JSON Document', 'indieauth' ) );
 			}
@@ -151,7 +164,7 @@ class IndieAuth_Client_Discovery {
 	}
 
 	private function get_html( $input ) {
-		$xpath               = new DOMXPath( $input );
+		$xpath = new DOMXPath( $input );
 		if ( ! empty( $xpath ) ) {
 			$title = $xpath->query( '//title' );
 			if ( ! empty( $title ) ) {
