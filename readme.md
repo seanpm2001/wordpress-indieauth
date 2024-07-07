@@ -4,7 +4,7 @@
 **Requires at least:** 4.9.9  
 **Requires PHP:** 5.6  
 **Tested up to:** 6.5  
-**Stable tag:** 4.4.3  
+**Stable tag:** 4.5.0  
 **License:** MIT  
 **License URI:** http://opensource.org/licenses/MIT  
 **Donate link:** https://opencollective.com/indieweb  
@@ -143,6 +143,10 @@ Since the extension is developing, there is currently not a specified way to tra
 
 ## Upgrade Notice ##
 
+### 4.5.0 ###
+
+4.5.0 removes support for client discovery using a manifest file. This was never part of the official specification and has been superseded by the newly added client json metadata option.
+
 ### 4.4.0 ###
 
 4.4.0 removes the remote endpoint functionality, which will be archived as a separate plugin in future. It was already disabled by default. It also removes the ability to login via URL and password. Websignin login is the only login enhancement.
@@ -184,6 +188,11 @@ In version 2.0, we added an IndieAuth endpoint to this plugin, which previously 
 ## Changelog ##
 
 Project and support maintained on github at [indieweb/wordpress-indieauth](https://github.com/indieweb/wordpress-indieauth).
+
+### 4.5.0 ###
+* Remove experimental manifest searching code for client discovery
+* Add support for client json metadata files recently added to specification with fallback to MF2 HTML
+* Fix declaration issue(props @janboddez)
 
 ### 4.4.2 ###
 
