@@ -2,12 +2,13 @@
 
 class IndieAuth_Client_Discovery {
 	protected $rels     = array();
-	protected $manifest = array();
 	protected $html     = array();
 	protected $mf2      = array();
+	protected $json     = array();
 	public $client_id   = '';
 	public $client_name = '';
 	public $client_icon = '';
+	public $client_uri  = '';
 
 	public function __construct( $client_id ) {
 		$this->client_id = $client_id;
@@ -24,7 +25,11 @@ class IndieAuth_Client_Discovery {
 		);
 
 		// If this is an IP address on the donotfetch list then do not fetch.
-		if ( ( $ip && ! in_array( $ip, $donotfetch, true ) || 'localhost' === wp_parse_url( $client_id, PHP_URL_HOST ) ) ) {
+		if ( $ip && ! in_array( $ip, $donotfetch, true ) ) {
+			return;
+		}
+
+		if ( 'localhost' === wp_parse_url( $client_id, PHP_URL_HOST ) ) {
 			return;
 		}
 
@@ -37,13 +42,14 @@ class IndieAuth_Client_Discovery {
 
 	public function export() {
 		return array(
-			'manifest'    => $this->manifest,
 			'rels'        => $this->rels,
 			'mf2'         => $this->mf2,
 			'html'        => $this->html,
+			'json'        => $this->json,
 			'client_id'   => $this->client_id,
 			'client_name' => $this->client_name,
 			'client_icon' => $this->client_icon,
+			'client_uri'  => $this->client_uri,
 		);
 	}
 
@@ -74,12 +80,40 @@ class IndieAuth_Client_Discovery {
 			return $response;
 		}
 
-		$content = wp_remote_retrieve_body( $response );
-
-		if ( class_exists( 'Masterminds\\HTML5' ) ) {
-			$domdocument = new \Masterminds\HTML5( array( 'disable_html_ns' => true ) );
-			$domdocument = $domdocument->loadHTML( $content );
-		} else {
+		$content_type = wp_remote_retrieve_header( $response, 'content-type' );
+		if ( 'application/json' === $content_type ) {
+			$this->json = json_decode( wp_remote_retrieve_body( $response ), true );
+			/**
+			 * Expected format is per the IndieAuth standard as revised 2024-06-23 to include a JSON Client Metadata File
+			 *
+			 * @param array $json {
+			 *      An array of metadata about a client
+			 *
+			 *      @type string $client_uri URL of a webpage providing information about the client.
+			 *      @type string $client_id The client identifier.
+			 *      @type string $client_name Human Readable Name of the Client. Optional.
+			 *      @type string $logo_uri URL that references a logo or icon for the client. Optional.
+			 *      @type array $redirect_uris An array of redirect URIs. Optional.
+			 *  }
+			 **/
+			if ( ! is_array( $this->json ) || empty( $this->json ) ) {
+					return new WP_Error( 'empty_json', __( 'Discovery Has Returned an Empty JSON Document', 'indieauth' ) );
+			}
+			if ( ! array_key_exists( 'client_id', $this->json ) ) {
+				return new WP_Error( 'missing_client_id', __( 'No Client ID Found in JSON Client Metadata', 'indieauth' ) );
+			}
+			$this->client_id = $this->json['client_id'];
+			if ( array_key_exists( 'client_name', $this->json ) ) {
+				$this->client_name = $this->json['client_name'];
+			}
+			if ( array_key_exists( 'logo_uri', $this->json ) ) {
+				$this->client_icon = $this->json['logo_uri'];
+			}
+			if ( array_key_exists( 'client_uri', $this->json ) ) {
+				$this->client_uri = $this->json['client_uri'];
+			}
+		} elseif ( 'text/html' === $content_type ) {
+			$content     = wp_remote_retrieve_body( $response );
 			$domdocument = new DOMDocument();
 			libxml_use_internal_errors( true );
 			if ( function_exists( 'mb_convert_encoding' ) ) {
@@ -87,32 +121,27 @@ class IndieAuth_Client_Discovery {
 			}
 			$domdocument->loadHTML( $content );
 			libxml_use_internal_errors( false );
-		}
-
-		$this->get_mf2( $domdocument, $url );
-		if ( ! empty( $this->mf2 ) ) {
-			if ( array_key_exists( 'name', $this->mf2 ) ) {
-				$this->client_name = $this->mf2['name'][0];
-			}
-			if ( array_key_exists( 'logo', $this->mf2 ) ) {
-				if ( is_string( $this->mf2['logo'][0] ) ) {
-					$this->client_icon = $this->mf2['logo'][0];
-				} else {
-					$this->client_icon = $this->mf2['logo'][0]['value'];
+			$this->get_mf2( $domdocument, $url );
+			if ( ! empty( $this->mf2 ) ) {
+				if ( array_key_exists( 'name', $this->mf2 ) ) {
+					$this->client_name = $this->mf2['name'][0];
 				}
+				if ( array_key_exists( 'logo', $this->mf2 ) ) {
+					if ( is_string( $this->mf2['logo'][0] ) ) {
+						$this->client_icon = $this->mf2['logo'][0];
+					} else {
+						$this->client_icon = $this->mf2['logo'][0]['value'];
+					}
+				}
+			} else {
+				$this->client_icon = $this->determine_icon( $this->rels );
+				$this->get_html( $domdocument );
+				$this->client_name = $this->html['title'];
 			}
-		} elseif ( isset( $this->rels['manifest'] ) ) {
-			self::get_manifest( $this->rels['manifest'] );
-			$this->client_icon = $this->determine_icon( $this->manifest );
-			$this->client_name = $this->manifest['name'];
-		} else {
-			$this->client_icon = $this->determine_icon( $this->rels );
-			$this->get_html( $domdocument );
-			$this->client_name = $this->html['title'];
-		}
 
-		if ( ! empty( $this->client_icon ) ) {
-			$this->client_icon = WP_Http::make_absolute_url( $this->client_icon, $url );
+			if ( ! empty( $this->client_icon ) ) {
+				$this->client_icon = WP_Http::make_absolute_url( $this->client_icon, $url );
+			}
 		}
 	}
 
@@ -122,7 +151,7 @@ class IndieAuth_Client_Discovery {
 		}
 		$mf = Mf2\parse( $input, $url );
 		if ( array_key_exists( 'rels', $mf ) ) {
-			$this->rels = wp_array_slice_assoc( $mf['rels'], array( 'apple-touch-icon', 'icon', 'mask-icon', 'manifest' ) );
+			$this->rels = wp_array_slice_assoc( $mf['rels'], array( 'apple-touch-icon', 'icon', 'mask-icon' ) );
 		}
 		if ( array_key_exists( 'items', $mf ) ) {
 			foreach ( $mf['items'] as $item ) {
@@ -134,23 +163,14 @@ class IndieAuth_Client_Discovery {
 		}
 	}
 
-	private function get_manifest( $url ) {
-		if ( is_array( $url ) ) {
-			$url = $url[0];
-		}
-		$response = self::fetch( $url );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-		$this->manifest = json_decode( wp_remote_retrieve_body( $response ), true );
-	}
-
 	private function get_html( $input ) {
-		if ( ! $input ) {
-			return;
+		$xpath = new DOMXPath( $input );
+		if ( ! empty( $xpath ) ) {
+			$title = $xpath->query( '//title' );
+			if ( ! empty( $title ) ) {
+				$this->html['title'] = $title->item( 0 )->textContent;
+			}
 		}
-		$xpath               = new DOMXPath( $input );
-		$this->html['title'] = $xpath->query( '//title' )->item( 0 )->textContent;
 	}
 
 	private function ifset( $array, $key, $default = false ) {
