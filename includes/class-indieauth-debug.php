@@ -48,7 +48,7 @@ class IndieAuth_Debug {
 			$headers = $request->get_headers();
 			$token   = isset( $headers['authorization'] ) ? 'Present' : 'Absent';
 			$data    = $result->get_data();
-			if ( isset( $data['access_token'] ) ) {
+			if ( is_array( $data ) && isset( $data['access_token'] ) ) {
 				// Remove actual token from logs
 				$data['access_token'] = 'XXXX';
 			}
