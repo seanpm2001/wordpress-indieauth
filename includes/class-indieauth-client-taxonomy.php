@@ -320,7 +320,11 @@ final class IndieAuth_Client_Taxonomy {
 		}
 
 		// Download Profile Picture and add as attachment
-		$file = wp_get_image_editor( download_url( $url, 300 ) );
+		$download = download_url( $url, 300 );
+		if ( is_wp_error( $download ) ) {
+			return false;
+		}
+		$file = wp_get_image_editor( $download );
 		if ( is_wp_error( $file ) ) {
 			return false;
 		}
