@@ -2,7 +2,7 @@
 **Contributors:** [indieweb](https://profiles.wordpress.org/indieweb/), [pfefferle](https://profiles.wordpress.org/pfefferle/), [dshanske](https://profiles.wordpress.org/dshanske/)  
 **Tags:** IndieAuth, IndieWeb, IndieWebCamp, login  
 **Requires at least:** 4.9.9  
-**Requires PHP:** 5.6  
+**Requires PHP:** 7.2  
 **Tested up to:** 6.5  
 **Stable tag:** 4.5.0  
 **License:** MIT  
