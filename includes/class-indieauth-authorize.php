@@ -91,7 +91,7 @@ class IndieAuth_Authorize {
 	public function rest_authentication_errors( $error = null ) {
 		if ( is_user_logged_in() ) {
 			// Another OAuth2 plugin successfully authenticated.
-			return null;
+			return $error;
 		}
 
 		if ( ! empty( $error ) ) {
@@ -103,7 +103,7 @@ class IndieAuth_Authorize {
 		if ( is_oauth_error( $this->error ) ) {
 			return $this->error->to_wp_error();
 		}
-		return null;
+		return $error;
 	}
 
 	/**
