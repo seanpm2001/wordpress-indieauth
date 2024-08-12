@@ -84,9 +84,9 @@ class IndieAuth_Authorize {
 	 * Attached to the rest_authentication_errors filter. Passes through existing
 	 * errors registered on the filter.
 	 *
-	 * @param WP_Error|null Current error, or null.
+	 * @param WP_Error|null|true Current error, null or true.
 	 *
-	 * @return WP_Error|null Error if one is set, otherwise null.
+	 * @return WP_Error|null|true Error if one is set, unchanged otherwise.
 	 */
 	public function rest_authentication_errors( $error = null ) {
 		if ( is_user_logged_in() ) {
@@ -94,15 +94,14 @@ class IndieAuth_Authorize {
 			return $error;
 		}
 
-		if ( ! empty( $error ) ) {
-			return $error;
-		}
 		if ( is_wp_error( $this->error ) ) {
 			return $this->error;
 		}
+
 		if ( is_oauth_error( $this->error ) ) {
 			return $this->error->to_wp_error();
 		}
+
 		return $error;
 	}
 
