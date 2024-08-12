@@ -26,15 +26,15 @@
 	<!-- Check up to 8 files simultaneously. -->
 	<arg name="parallel" value="8"/>
 
-	
+
 	<!-- PHP/WordPress Compatibility Check -->
-	<config name="testVersion" value="5.6-"/>
+	<config name="testVersion" value="7.2-"/>
 	<rule ref="PHPCompatibilityWP"/>
 
 	<config name="minimum_supported_wp_version" value="4.9"/>
 
 
-        <rule ref="WordPress.WP.I18n">
+	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
 				<element value="indieauth"/>
@@ -47,7 +47,7 @@
 	<rule ref="WordPress.WP.DeprecatedParameters" />
 	<rule ref="WordPress.WP.AlternativeFunctions" />
 
-	<rule ref="WordPress-Core" />	
+	<rule ref="WordPress-Core" />
 	<rule ref="WordPress.Files.FileName">
 		<properties>
 			<property name="strict_class_file_names" value="false" />
