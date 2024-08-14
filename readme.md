@@ -3,8 +3,8 @@
 **Tags:** IndieAuth, IndieWeb, IndieWebCamp, login  
 **Requires at least:** 4.9.9  
 **Requires PHP:** 7.2  
-**Tested up to:** 6.5  
-**Stable tag:** 4.5.0  
+**Tested up to:** 6.6  
+**Stable tag:** 4.5.1  
 **License:** MIT  
 **License URI:** http://opensource.org/licenses/MIT  
 **Donate link:** https://opencollective.com/indieweb  
@@ -188,6 +188,10 @@ In version 2.0, we added an IndieAuth endpoint to this plugin, which previously 
 ## Changelog ##
 
 Project and support maintained on github at [indieweb/wordpress-indieauth](https://github.com/indieweb/wordpress-indieauth).
+
+### 4.5.1 ###
+* Fix issue with failure if logo_uri is not a URL
+* Fix conflict with Jetpack plugin due not returning error property (props @janboddez)
 
 ### 4.5.0 ###
 * Remove experimental manifest searching code for client discovery
