@@ -81,6 +81,18 @@ final class IndieAuth_Client_Taxonomy {
 		);
 		register_meta(
 			'term',
+			'client_uri',
+			array(
+				'object_subtype'    => 'indieauth_client',
+				'type'              => 'string',
+				'description'       => __( 'IndieAuth Client Application URI', 'indieauth' ),
+				'single'            => true,
+				'sanitize_callback' => 'esc_url_raw',
+				'show_in_rest'      => true,
+			)
+		);
+		register_meta(
+			'term',
 			'last_modified',
 			array(
 				'object_subtype' => 'indieauth_client',
@@ -136,6 +148,8 @@ final class IndieAuth_Client_Taxonomy {
 			return $exists;
 		}
 
+		$client_uri = '';
+
 		if ( empty( $name ) ) {
 			$client = new IndieAuth_Client_Discovery( $url );
 			if ( defined( 'INDIEAUTH_UNIT_TESTS' ) ) {
@@ -143,8 +157,9 @@ final class IndieAuth_Client_Taxonomy {
 					'client_id' => $url,
 				);
 			}
-			$name = $client->get_name();
-			$icon = $client->get_icon();
+			$name       = $client->get_name();
+			$icon       = $client->get_icon();
+			$client_uri = $client->get_uri();
 			if ( empty( $name ) ) {
 				$name = self::generate_slug( $url );
 			}
@@ -163,7 +178,13 @@ final class IndieAuth_Client_Taxonomy {
 		if ( is_wp_error( $term ) ) {
 			return $term;
 		}
-		add_term_meta( $term['term_id'], 'icon', $icon );
+		if ( ! empty( $icon ) ) {
+			add_term_meta( $term['term_id'], 'icon', $icon );
+		}
+		if ( ! empty( $client_uri ) ) {
+			add_term_meta( $term['term_id'], 'client_uri', $client_uri );
+		}
+
 		add_term_meta( $term['term_id'], 'last_modified', time() );
 		return array_filter(
 			array(

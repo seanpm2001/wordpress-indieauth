@@ -186,6 +186,10 @@ class IndieAuth_Client_Discovery {
 		return $this->client_name;
 	}
 
+	public function get_uri() {
+		return $this->client_uri;
+	}
+
 	// Separate function for possible improved size picking later
 	private function determine_icon( $input ) {
 		if ( ! is_array( $input ) || empty( $input ) ) {
