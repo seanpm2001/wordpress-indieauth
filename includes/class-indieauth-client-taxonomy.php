@@ -143,7 +143,11 @@ final class IndieAuth_Client_Taxonomy {
 					'client_id' => $url,
 				);
 			}
-			return self::add_client( $url, $client->get_name(), $client->get_icon() );
+			$name = $client->get_name();
+			$icon = $client->get_icon();
+			if ( empty( $name ) ) {
+				$name = self::generate_slug( $url );
+			}
 		}
 
 		$icon = self::sideload_icon( $icon, $url );
