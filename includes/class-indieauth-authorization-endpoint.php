@@ -425,7 +425,7 @@ class IndieAuth_Authorization_Endpoint extends IndieAuth_Endpoint {
 		$current_user = wp_get_current_user();
 		// phpcs:disable
 		$client_id     = esc_url_raw( wp_unslash( $_GET['client_id'] ) ); // WPCS: CSRF OK
-		$client_term                 = IndieAuth_Client_Taxonomy::add_client_with_discovery( $client_id );
+		$client_term                 = IndieAuth_Client_Taxonomy::add_client( $client_id );
 		if ( ! is_wp_error( $client_term ) ) {
 			$client_name = $client_term['name'];
 			$client_icon = $client_term['icon'];

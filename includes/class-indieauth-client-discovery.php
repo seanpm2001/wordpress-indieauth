@@ -32,8 +32,9 @@ class IndieAuth_Client_Discovery {
 		if ( 'localhost' === wp_parse_url( $client_id, PHP_URL_HOST ) ) {
 			return;
 		}
-
+		error_log( 'Pre-Parse' );
 		$response = self::parse( $client_id );
+		error_log( 'Post-Parse' );
 		if ( is_wp_error( $response ) ) {
 			error_log( __( 'Failed to Retrieve IndieAuth Client Details ', 'indieauth' ) . wp_json_encode( $response ) ); // phpcs:ignore
 			return;
@@ -113,15 +114,8 @@ class IndieAuth_Client_Discovery {
 				$this->client_uri = $this->json['client_uri'];
 			}
 		} elseif ( 'text/html' === $content_type ) {
-			$content     = wp_remote_retrieve_body( $response );
-			$domdocument = new DOMDocument();
-			libxml_use_internal_errors( true );
-			if ( function_exists( 'mb_convert_encoding' ) ) {
-				$content = mb_convert_encoding( $content, 'HTML-ENTITIES', mb_detect_encoding( $content ) );
-			}
-			$domdocument->loadHTML( $content );
-			libxml_use_internal_errors( false );
-			$this->get_mf2( $domdocument, $url );
+			$content = wp_remote_retrieve_body( $response );
+			$this->get_mf2( $content, $url );
 			if ( ! empty( $this->mf2 ) ) {
 				if ( array_key_exists( 'name', $this->mf2 ) ) {
 					$this->client_name = $this->mf2['name'][0];
@@ -190,6 +184,10 @@ class IndieAuth_Client_Discovery {
 
 	public function get_name() {
 		return $this->client_name;
+	}
+
+	public function get_uri() {
+		return $this->client_uri;
 	}
 
 	// Separate function for possible improved size picking later

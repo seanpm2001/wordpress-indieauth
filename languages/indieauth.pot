@@ -2,9 +2,9 @@
 # This file is distributed under the MIT.
 msgid ""
 msgstr ""
-"Project-Id-Version: IndieAuth 4.5.1\n"
+"Project-Id-Version: IndieAuth 4.5.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/indieauth\n"
-"POT-Creation-Date: 2024-08-14 00:32:52+00:00\n"
+"POT-Creation-Date: 2024-08-26 02:02:31+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -375,19 +375,19 @@ msgstr ""
 msgid "Invalid access token"
 msgstr ""
 
-#: includes/class-indieauth-client-discovery.php:38
+#: includes/class-indieauth-client-discovery.php:39
 msgid "Failed to Retrieve IndieAuth Client Details "
 msgstr ""
 
-#: includes/class-indieauth-client-discovery.php:69
+#: includes/class-indieauth-client-discovery.php:70
 msgid "Failed to Retrieve Client Details"
 msgstr ""
 
-#: includes/class-indieauth-client-discovery.php:100
+#: includes/class-indieauth-client-discovery.php:101
 msgid "Discovery Has Returned an Empty JSON Document"
 msgstr ""
 
-#: includes/class-indieauth-client-discovery.php:103
+#: includes/class-indieauth-client-discovery.php:104
 msgid "No Client ID Found in JSON Client Metadata"
 msgstr ""
 
@@ -399,11 +399,19 @@ msgstr ""
 msgid "IndieAuth Client Application Icon"
 msgstr ""
 
-#: includes/class-indieauth-client-taxonomy.php:207
+#: includes/class-indieauth-client-taxonomy.php:88
+msgid "IndieAuth Client Application URI"
+msgstr ""
+
+#: includes/class-indieauth-client-taxonomy.php:100
+msgid "Last Modified Client Timestamp"
+msgstr ""
+
+#: includes/class-indieauth-client-taxonomy.php:238
 msgid "No Term Found"
 msgstr ""
 
-#: includes/class-indieauth-client-taxonomy.php:211
+#: includes/class-indieauth-client-taxonomy.php:242
 msgid "Multiple Terms Found"
 msgstr ""
 

@@ -258,7 +258,7 @@ class IndieAuth_Token_Endpoint extends IndieAuth_Endpoint {
 
 			// Issue a token
 			if ( ! empty( $scopes ) ) {
-				$client = IndieAuth_Client_Taxonomy::add_client_with_discovery( $response['client_id'] );
+				$client = IndieAuth_Client_Taxonomy::add_client( $response['client_id'] );
 				if ( is_wp_error( $client ) ) {
 					$client = array( 'id' => $client->get_error_message() );
 				}
